@@ -192,8 +192,3 @@ python app.py
 
 
 
-If you want, I can also:
-
-* customize it with your **GitHub repo link**
-* add **screenshots section**
-* or make a **shorter README (for recruiters)** 👍
