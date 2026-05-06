@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Analytics - SecureLeak Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #4F46E5;
+            --secondary-color: #7C3AED;
+            --accent-color: #06B6D4;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --danger-color: #EF4444;
+            --dark-bg: #0F172A;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .back-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            border-color: var(--primary-color);
+            transform: translateX(-5px);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .time-filter {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .time-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .time-btn:hover {
+            border-color: var(--primary-color);
+        }
+
+        .time-btn.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-5px);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .stat-change.positive {
+            color: var(--success-color);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .stat-change.negative {
+            color: var(--danger-color);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chart-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chart-btn:hover {
+            border-color: var(--primary-color);
+        }
+
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .table-container {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .table-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .data-table tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .refresh-btn:hover {
+            transform: rotate(180deg);
+            box-shadow: 0 15px 40px rgba(79, 70, 229, 0.4);
+        }
+
+        .export-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--glass-border);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .time-filter {
+                flex-wrap: wrap;
+            }
+
+            .charts-grid, .tables-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .export-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="header">
+            <a href="/admin_dashboard" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+            <h1 class="page-title">System Analytics</h1>
+        </div>
+
+        <!-- Export Buttons -->
+        <div class="export-container">
+            <button onclick="exportCharts()" class="btn btn-primary">
+                <i class="fas fa-download"></i>
+                Export Charts
+            </button>
+            <button onclick="generateReport()" class="btn btn-primary">
+                <i class="fas fa-file-pdf"></i>
+                Generate Report
+            </button>
+        </div>
+
+        <!-- Time Filter -->
+        <div class="time-filter">
+            <button class="time-btn active" data-days="7">Last 7 Days</button>
+            <button class="time-btn" data-days="30">Last 30 Days</button>
+            <button class="time-btn" data-days="90">Last 90 Days</button>
+            <button class="time-btn" data-days="365">Last Year</button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        12%
+                    </div>
+                </div>
+                <div class="stat-value" id="totalUsers">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        8%
+                    </div>
+                </div>
+                <div class="stat-value" id="totalPredictions">0</div>
+                <div class="stat-label">Total Predictions</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i>
+                        3%
+                    </div>
+                </div>
+                <div class="stat-value" id="leakageRate">0%</div>
+                <div class="stat-label">Leakage Rate</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        5%
+                    </div>
+                </div>
+                <div class="stat-value" id="avgConfidence">0%</div>
+                <div class="stat-label">Avg Confidence</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <!-- User Growth Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3 class="chart-title">User Growth</h3>
+                    <div class="chart-actions">
+                        <button class="chart-btn" onclick="toggleChart('userChart')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <canvas id="userChart"></canvas>
+            </div>
+
+            <!-- Prediction Activity Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3 class="chart-title">Prediction Activity</h3>
+                    <div class="chart-actions">
+                        <button class="chart-btn" onclick="toggleChart('predictionChart')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <canvas id="predictionChart"></canvas>
+            </div>
+
+            <!-- User Distribution Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3 class="chart-title">User Distribution</h3>
+                    <div class="chart-actions">
+                        <button class="chart-btn" onclick="toggleChart('distributionChart')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <canvas id="distributionChart"></canvas>
+            </div>
+
+            <!-- Leakage Trends Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3 class="chart-title">Leakage Trends</h3>
+                    <div class="chart-actions">
+                        <button class="chart-btn" onclick="toggleChart('leakageChart')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <canvas id="leakageChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tables -->
+        <div class="tables-grid">
+            <!-- Top Users Table -->
+            <div class="table-container">
+                <h3 class="table-title">Top Users by Activity</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Activity Count</th>
+                            <th>Last Active</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topUsersTable">
+                        {% for user in top_active_users %}
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar">{{ user[0][0]|upper }}</div>
+                                    <div>
+                                        <div>{{ user[0] }}</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ user[1] }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ user[2] }}</td>
+                            <td>Today</td>
+                            <td>
+                                <span style="color: var(--success-color);">● Active</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Recent Leakages Table -->
+            <div class="table-container">
+                <h3 class="table-title">Recent Leakage Predictions</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Confidence</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentLeaksTable">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title">System Performance</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>CPU Usage</span>
+                        <span id="cpuUsage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="cpuProgress"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Memory Usage</span>
+                        <span id="memoryUsage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="memoryProgress"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Database Load</span>
+                        <span id="dbLoad">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="dbProgress"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Refresh Button -->
+    <button class="refresh-btn" onclick="loadAnalytics()">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+
+    <!-- Loading Overlay -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div>Loading analytics...</div>
+    </div>
+
+    <script>
+        let charts = {};
+        let currentDays = 7;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial analytics
+            loadAnalytics();
+
+            // Set up time filter buttons
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentDays = parseInt(this.dataset.days);
+                    loadAnalytics();
+                });
+            });
+
+            // Set up auto-refresh
+            setInterval(loadAnalytics, 30000);
+        });
+
+        async function loadAnalytics() {
+            showLoading();
+            
+            try {
+                const response = await fetch(`/admin/api/analytics?days=${currentDays}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateStats(data.analytics);
+                    updateCharts(data.analytics);
+                    updateTables(data.analytics);
+                    updatePerformanceMetrics();
+                } else {
+                    console.error('Error loading analytics:', data.message);
+                }
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function updateStats(analytics) {
+            // Update stat cards
+            document.getElementById('totalUsers').textContent = analytics.total_users || 0;
+            document.getElementById('totalPredictions').textContent = analytics.total_preds || 0;
+            document.getElementById('leakageRate').textContent = `${analytics.leakage_rate || 0}%`;
+            document.getElementById('avgConfidence').textContent = `${analytics.avg_confidence || 0}%`;
+        }
+
+        function updateCharts(analytics) {
+            const dates = analytics.dates || [];
+            const totalUsers = analytics.total_users_data || [];
+            const activeUsers = analytics.active_users || [];
+            const totalPredictions = analytics.total_predictions || [];
+            const leakagePredictions = analytics.leakage_predictions || [];
+            const userDistribution = analytics.user_distribution || [];
+
+            // User Growth Chart
+            if (charts.userChart) {
+                charts.userChart.destroy();
+            }
+            const userCtx = document.getElementById('userChart').getContext('2d');
+            charts.userChart = new Chart(userCtx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Total Users',
+                            data: totalUsers,
+                            borderColor: '#4F46E5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Active Users',
+                            data: activeUsers,
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#94A3B8'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#94A3B8'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#F1F5F9'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Prediction Activity Chart
+            if (charts.predictionChart) {
+                charts.predictionChart.destroy();
+            }
+            const predCtx = document.getElementById('predictionChart').getContext('2d');
+            charts.predictionChart = new Chart(predCtx, {
+                type: 'bar',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Total Predictions',
+                            data: totalPredictions,
+                            backgroundColor: 'rgba(79, 70, 229, 0.5)',
+                            borderColor: '#4F46E5',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Leakage Predictions',
+                            data: leakagePredictions,
+                            backgroundColor: 'rgba(239, 68, 68, 0.5)',
+                            borderColor: '#EF4444',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#94A3B8'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#94A3B8'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#F1F5F9'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // User Distribution Chart
+            if (charts.distributionChart) {
+                charts.distributionChart.destroy();
+            }
+            const distCtx = document.getElementById('distributionChart').getContext('2d');
+            charts.distributionChart = new Chart(distCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Admin', 'User', 'Manager'],
+                    datasets: [{
+                        data: userDistribution,
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)'
+                        ],
+                        borderColor: [
+                            '#EF4444',
+                            '#10B981',
+                            '#F59E0B'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#F1F5F9'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTables(analytics) {
+            // Update top users table
+            const topUsersTable = document.getElementById('topUsersTable');
+            if (analytics.top_users && analytics.top_users.length > 0) {
+                topUsersTable.innerHTML = analytics.top_users.map(user => `
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="user-avatar">${user.name[0].toUpperCase()}</div>
+                                <div>
+                                    <div>${user.name}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${user.email}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${user.count}</td>
+                        <td>${formatTimeAgo(user.last_activity)}</td>
+                        <td><span style="color: var(--success-color);">● Active</span></td>
+                    </tr>
+                `).join('');
+            }
+
+            // Update recent leaks table
+            const recentLeaksTable = document.getElementById('recentLeaksTable');
+            // This would be populated with actual data from the analytics
+            recentLeaksTable.innerHTML = `
+                <tr>
+                    <td>Just now</td>
+                    <td>John Doe</td>
+                    <td><span style="color: var(--danger-color);">95%</span></td>
+                    <td>Unauthorized access attempt</td>
+                </tr>
+                <tr>
+                    <td>5 min ago</td>
+                    <td>Jane Smith</td>
+                    <td><span style="color: var(--warning-color);">75%</span></td>
+                    <td>Suspicious data transfer</td>
+                </tr>
+                <tr>
+                    <td>1 hour ago</td>
+                    <td>Bob Johnson</td>
+                    <td><span style="color: var(--danger-color);">98%</span></td>
+                    <td>Data leakage detected</td>
+                </tr>
+            `;
+        }
+
+        function updatePerformanceMetrics() {
+            // Simulate performance metrics (in real app, fetch from server)
+            const cpu = Math.floor(Math.random() * 30) + 20;
+            const memory = Math.floor(Math.random() * 40) + 30;
+            const db = Math.floor(Math.random() * 20) + 10;
+
+            document.getElementById('cpuUsage').textContent = `${cpu}%`;
+            document.getElementById('cpuProgress').style.width = `${cpu}%`;
+
+            document.getElementById('memoryUsage').textContent = `${memory}%`;
+            document.getElementById('memoryProgress').style.width = `${memory}%`;
+
+            document.getElementById('dbLoad').textContent = `${db}%`;
+            document.getElementById('dbProgress').style.width = `${db}%`;
+        }
+
+        function toggleChart(chartId) {
+            const chart = charts[chartId];
+            if (chart) {
+                const canvas = document.getElementById(chartId);
+                canvas.style.display = canvas.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        function exportCharts() {
+            // Export all charts as images
+            Object.keys(charts).forEach(chartId => {
+                const chart = charts[chartId];
+                const link = document.createElement('a');
+                link.download = `${chartId}.png`;
+                link.href = chart.toBase64Image();
+                link.click();
+            });
+        }
+
+        function generateReport() {
+            showLoading();
+            // In a real app, this would generate a PDF report
+            setTimeout(() => {
+                alert('Report generation would be implemented in production');
+                hideLoading();
+            }, 1000);
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+        }
+
+        function formatTimeAgo(timestamp) {
+            // Implement time formatting logic
+            return 'Today';
+        }
+    </script>
+</body>
+</html>

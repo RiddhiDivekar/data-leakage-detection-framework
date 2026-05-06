@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP - SecureLeak</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Same CSS as forgot_password.html, with some additions */
+        /* Copy all CSS from forgot_password.html and add: */
+        
+        .otp-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .otp-input {
+            width: 60px;
+            height: 60px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            background: var(--input-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        
+        .otp-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .timer {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .timer-expired {
+            color: var(--danger-color);
+        }
+        
+        .resend-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .resend-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .resend-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .resend-link.disabled a {
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background (same as forgot_password.html) -->
+    <div class="background-container">
+        <div class="background-image"></div>
+        <div class="particles" id="particles"></div>
+    </div>
+
+    <!-- Navigation (same as forgot_password.html) -->
+    <nav>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>SecureLeak</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="forgot-container">
+        <div class="form-wrapper">
+            <div class="form-card">
+                <div class="form-header">
+                    <div class="form-icon">
+                        <i class="fas fa-shield-check"></i>
+                    </div>
+                    <h2 class="form-title">Verify OTP</h2>
+                    <p class="form-subtitle">
+                        Enter the 6-digit OTP sent to <strong>{{ email }}</strong>
+                    </p>
+                </div>
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="message message-{{ category }}">
+                                <i class="fas fa-{% if category == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" id="otpForm">
+                    <div class="form-group">
+                        <label class="form-label">One-Time Password</label>
+                        <div class="otp-container">
+                            {% for i in range(6) %}
+                            <input type="text" 
+                                   name="otp{{ i }}" 
+                                   class="otp-input" 
+                                   maxlength="1" 
+                                   onkeyup="moveToNext(this, {{ i }})"
+                                   onkeydown="handleBackspace(this, {{ i }}, event)">
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="otp" id="fullOtp">
+                    </div>
+
+                    <div class="timer" id="timer">
+                        OTP expires in: <span id="countdown">10:00</span>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-check-circle"></i>
+                        Verify OTP
+                    </button>
+                </form>
+
+                <div class="resend-link" id="resendLink">
+                    <a href="/resend_otp">
+                        <i class="fas fa-redo"></i>
+                        Resend OTP
+                    </a>
+                </div>
+
+                <div class="links">
+                    <a href="/cancel_reset" class="link">
+                        <i class="fas fa-times"></i>
+                        Cancel Reset
+                    </a>
+                    <a href="/forgot_password" class="link">
+                        <i class="fas fa-arrow-left"></i>
+                        Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generate particles (same as before)
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (20 + Math.random() * 10) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // OTP Input Handling
+        function moveToNext(input, index) {
+            // Combine all OTP inputs
+            combineOTP();
+            
+            // Move to next input if current is filled
+            if (input.value.length === 1 && index < 5) {
+                const nextInput = document.querySelector(`[name="otp${index + 1}"]`);
+                nextInput.focus();
+                nextInput.select();
+            }
+            
+            // Auto-submit when all 6 digits are entered
+            const allInputs = document.querySelectorAll('.otp-input');
+            const allFilled = Array.from(allInputs).every(input => input.value.length === 1);
+            if (allFilled) {
+                document.getElementById('fullOtp').value = Array.from(allInputs).map(i => i.value).join('');
+                document.getElementById('otpForm').submit();
+            }
+        }
+        
+        function handleBackspace(input, index, event) {
+            if (event.key === 'Backspace' && !input.value && index > 0) {
+                const prevInput = document.querySelector(`[name="otp${index - 1}"]`);
+                prevInput.focus();
+                prevInput.select();
+            }
+        }
+        
+        function combineOTP() {
+            const inputs = document.querySelectorAll('.otp-input');
+            const fullOTP = Array.from(inputs).map(input => input.value).join('');
+            document.getElementById('fullOtp').value = fullOTP;
+        }
+        
+        // Timer
+        let timeLeft = 600; // 10 minutes in seconds
+        const timerElement = document.getElementById('countdown');
+        const resendLink = document.getElementById('resendLink');
+        
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                timerElement.textContent = '00:00';
+                timerElement.parentElement.classList.add('timer-expired');
+                resendLink.classList.remove('disabled');
+                clearInterval(timerInterval);
+            } else {
+                timeLeft--;
+            }
+        }
+        
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+        
+        // Form submission
+        document.getElementById('otpForm').addEventListener('submit', function(e) {
+            // Make sure OTP is combined
+            combineOTP();
+            
+            const submitBtn = this.querySelector('.submit-btn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+            submitBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>

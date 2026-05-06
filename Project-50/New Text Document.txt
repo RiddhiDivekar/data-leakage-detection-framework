@@ -1,0 +1,6 @@
+# Gmail Credentials (For sending emails)
+GMAIL_USERNAME=sejalsapale020@gmail.com
+GMAIL_PASSWORD=peti nwnw rnpu vzdh
+
+# App Configuration
+SECRET_KEY=your_secret_key_here

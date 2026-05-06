@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Model - SecureLeak</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #4F46E5;
+            --secondary-color: #7C3AED;
+            --accent-color: #06B6D4;
+            --success-color: #10B981;
+            --dark-bg: #0F172A;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+        }
+
+        .background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://picsum.photos/seed/trainmodel/1920/1080.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.05;
+            animation: slowZoom 30s ease-in-out infinite alternate;
+        }
+
+        @keyframes slowZoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        /* Animated Particles */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            animation: float 25s infinite linear;
+            opacity: 0.2;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.2;
+            }
+            90% {
+                opacity: 0.2;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--primary-color);
+            transform: translateX(-5px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 5px rgba(79, 70, 229, 0.5)); }
+            to { filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.8)); }
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 70px;
+            padding: 2rem;
+            min-height: calc(100vh - 70px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .train-container {
+            max-width: 1200px;
+            width: 100%;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Enhanced Container */
+        .container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Enhanced h1 */
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 2px;
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        /* Enhanced Flash Messages */
+        .flashes {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .flashes li {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(124, 58, 237, 0.1));
+            border: 1px solid var(--primary-color);
+            color: var(--text-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            animation: slideIn 0.5s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .flashes li::before {
+            content: 'ℹ️';
+            font-size: 1.25rem;
+        }
+
+        /* Enhanced Form */
+        form {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        select {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.5rem;
+            padding-right: 3rem;
+        }
+
+        select:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        select option {
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            padding: 0.5rem;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 1.25rem 2rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(79, 70, 229, 0.3);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        button[type="submit"]::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button[type="submit"]:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Model Cards */
+        .model-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .model-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .model-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.1);
+        }
+
+        .model-card.selected {
+            border-color: var(--primary-color);
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .model-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+        }
+
+        .model-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .model-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Accuracy Display */
+        .accuracy-section {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+            border: 1px solid var(--success-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--success-color);
+        }
+
+        .accuracy-value {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .accuracy-description {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Enhanced Success Button */
+        .btn-container {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .btn-success {
+            padding: 1.25rem 3rem;
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-success::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-success:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-icon {
+            font-size: 1.25rem;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .btn-success:hover .btn-icon {
+            animation-duration: 0.5s;
+        }
+
+        /* Loading State */
+        .loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 2rem 1.5rem;
+            }
+
+            form {
+                padding: 1.5rem;
+            }
+
+            .model-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .accuracy-value {
+                font-size: 3rem;
+            }
+
+            .btn-success {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="background-container">
+        <div class="background-image"></div>
+        <div class="particles" id="particles"></div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-left">
+            <a href="/user_dashboard" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back to Dashboard</span>
+            </a>
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>SecureLeak</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="train-container">
+            <!-- Your Original Container with Enhanced Styling -->
+            <div class="container">
+                <!-- Enhanced h1 -->
+                <h1>Train Your Model</h1>
+
+                <!-- Enhanced Flash Messages -->
+                {% with messages = get_flashed_messages() %}
+                  {% if messages %}
+                    <ul class="flashes">
+                      {% for message in messages %}
+                        <li>{{ message }}</li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                {% endwith %}
+
+                <!-- Model Selection Cards -->
+                <div class="model-cards">
+                    <div class="model-card" onclick="selectModel('rf')">
+                        <div class="model-icon">
+                            <i class="fas fa-tree"></i>
+                        </div>
+                        <div class="model-name">Random Forest</div>
+                        <div class="model-description">Ensemble learning with multiple decision trees</div>
+                    </div>
+                    <div class="model-card" onclick="selectModel('cnn')">
+                        <div class="model-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="model-name">1D CNN</div>
+                        <div class="model-description">Deep learning for sequential data</div>
+                    </div>
+                </div>
+
+                <!-- Enhanced Form -->
+                <form method="POST" id="trainForm">
+                    <div class="form-group">
+                        <label for="model_type">Select Model:</label>
+                        <select name="model_type" id="model_type" required onchange="updateModelSelection()">
+                            <option value="rf">Random Forest</option>
+                            <option value="cnn">1D CNN</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="trainBtn">
+                        <i class="fas fa-play"></i>
+                        Train Model
+                    </button>
+                </form>
+
+                <!-- Enhanced Accuracy Display -->
+                {% if accuracy is not none %}
+                    <div class="accuracy-section">
+                        <h2>Model Accuracy:</h2>
+                        <div class="accuracy-value">{{ accuracy | round(2) }}%</div>
+                        <div class="accuracy-description">Excellent performance achieved!</div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Enhanced Success Button -->
+            {% if accuracy is not none %}
+            <div class="btn-container">
+                <a href="/prediction" class="btn-success">
+                    <i class="fas fa-arrow-right btn-icon"></i>
+                    Proceed to Prediction
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <script>
+        // Generate particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 25 + 's';
+            particle.style.animationDuration = (25 + Math.random() * 15) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Model selection from cards
+        function selectModel(modelType) {
+            const select = document.getElementById('model_type');
+            select.value = modelType;
+            updateModelSelection();
+        }
+
+        // Update model selection visual feedback
+        function updateModelSelection() {
+            const modelType = document.getElementById('model_type').value;
+            const cards = document.querySelectorAll('.model-card');
+            
+            cards.forEach((card, index) => {
+                if ((modelType === 'rf' && index === 0) || (modelType === 'cnn' && index === 1)) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
+        }
+
+        // Form submission with loading state
+        const trainForm = document.getElementById('trainForm');
+        const trainBtn = document.getElementById('trainBtn');
+
+        trainForm.addEventListener('submit', function(e) {
+            // Add loading state
+            trainBtn.classList.add('loading');
+            trainBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Training...';
+            
+            // Simulate training (remove this in production)
+            setTimeout(() => {
+                trainBtn.classList.remove('loading');
+                trainBtn.innerHTML = '<i class="fas fa-check"></i> Training Complete!';
+            }, 3000);
+        });
+
+        // Initialize model selection
+        updateModelSelection();
+
+        // Add hover effects to model cards
+        document.querySelectorAll('.model-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const icon = this.querySelector('.model-icon');
+                if (icon) {
+                    icon.style.transform = 'rotateY(360deg)';
+                    icon.style.transition = 'transform 0.6s ease';
+                }
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                const icon = this.querySelector('.model-icon');
+                if (icon) {
+                    icon.style.transform = 'rotateY(0deg)';
+                }
+            });
+        });
+
+        // Add interactive hover to accuracy value
+        {% if accuracy is not none %}
+        const accuracyValue = document.querySelector('.accuracy-value');
+        if (accuracyValue) {
+            accuracyValue.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1)';
+                this.style.transition = 'transform 0.3s ease';
+            });
+            
+            accuracyValue.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        }
+        {% endif %}
+    </script>
+</body>
+</html>

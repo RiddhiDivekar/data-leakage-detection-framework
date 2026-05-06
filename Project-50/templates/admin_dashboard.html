@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SecureLeak</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #4F46E5;
+            --secondary-color: #7C3AED;
+            --accent-color: #06B6D4;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --danger-color: #EF4444;
+            --dark-bg: #0F172A;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+        }
+
+        .background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://picsum.photos/seed/admindashboard/1920/1080.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.05;
+            animation: slowZoom 30s ease-in-out infinite alternate;
+        }
+
+        @keyframes slowZoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        /* Animated Particles */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            animation: float 25s infinite linear;
+            opacity: 0.2;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.2;
+            }
+            90% {
+                opacity: 0.2;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 5px rgba(79, 70, 229, 0.5)); }
+            to { filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.8)); }
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 70px;
+            padding: 2rem;
+            min-height: calc(100vh - 70px);
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Enhanced h2 */
+        h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 2px;
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-50%) scaleX(0); }
+            50% { transform: translateX(-50%) scaleX(1); }
+            100% { transform: translateX(-50%) scaleX(0); }
+        }
+
+        /* Enhanced h3 */
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .stat-change.positive {
+            color: var(--success-color);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .stat-change.negative {
+            color: var(--danger-color);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Enhanced Users List */
+        .users-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .users-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        .users-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .search-icon {
+            color: var(--text-secondary);
+        }
+
+        .search-input {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            width: 200px;
+            outline: none;
+        }
+
+        .filter-btn {
+            padding: 0.75rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary-color);
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        /* Enhanced Users List */
+        .users-list {
+            list-style: none;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .users-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .users-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        .users-list::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            animation: slideIn 0.5s ease-out backwards;
+        }
+
+        .user-item:nth-child(1) { animation-delay: 0.05s; }
+        .user-item:nth-child(2) { animation-delay: 0.1s; }
+        .user-item:nth-child(3) { animation-delay: 0.15s; }
+        .user-item:nth-child(4) { animation-delay: 0.2s; }
+        .user-item:nth-child(5) { animation-delay: 0.25s; }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .user-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .user-name-display {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .user-email-display {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .user-role-badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .role-admin {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .role-user {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .role-manager {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #DC2626);
+            color: white;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Logout Button */
+        .logout-container {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .logout-btn {
+            padding: 1rem 3rem;
+            background: linear-gradient(135deg, var(--danger-color), #DC2626);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(239, 68, 68, 0.4);
+        }
+
+        .logout-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .logout-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .logout-btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .logout-icon {
+            font-size: 1.25rem;
+            animation: signOut 2s ease-in-out infinite;
+        }
+
+        @keyframes signOut {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-5px); }
+        }
+
+        .logout-btn:hover .logout-icon {
+            animation-duration: 0.5s;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h2 {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .users-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .user-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="background-container">
+        <div class="background-image"></div>
+        <div class="particles" id="particles"></div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-left">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>SecureLeak</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="user-profile">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <span class="user-name">Admin</span>
+                    <span class="user-role">Administrator</span>
+                </div>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="admin-container">
+            <!-- Enhanced h2 -->
+            <h2>Admin Dashboard</h2>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            12%
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ users|length }}</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            8%
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</div>
+                    <div class="stat-label">Admin Users</div>
+                </div>
+
+<!-- New Features Menu -->
+<div class="features-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+    
+    <!-- Feature 1: User Management -->
+    <div class="feature-card" style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 1rem; padding: 1.5rem; transition: all 0.3s ease;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <div class="feature-icon" style="width: 50px; height: 50px; background: linear-gradient(135deg, #4F46E5, #7C3AED); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                <i class="fas fa-users"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem;">User Management</h3>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">Manage all system users</p>
+            </div>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <p style="color: var(--text-secondary); font-size: 0.875rem; line-height: 1.5;">
+                Add, edit, suspend, or delete users. View user statistics and manage permissions.
+            </p>
+        </div>
+        <a href="/admin/users" class="feature-btn" style="display: inline-block; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #4F46E5, #7C3AED); color: white; text-decoration: none; border-radius: 0.75rem; font-weight: 600; transition: all 0.3s ease;">
+            <i class="fas fa-arrow-right"></i> Manage Users
+        </a>
+    </div>
+
+    <!-- Feature 2: Activity Logs -->
+    <div class="feature-card" style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 1rem; padding: 1.5rem; transition: all 0.3s ease;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <div class="feature-icon" style="width: 50px; height: 50px; background: linear-gradient(135deg, #06B6D4, #0EA5E9); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                <i class="fas fa-history"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem;">Activity Logs</h3>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">Monitor user activities</p>
+            </div>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <p style="color: var(--text-secondary); font-size: 0.875rem; line-height: 1.5;">
+                Track all user activities including logins, predictions, and system interactions with detailed logs.
+            </p>
+        </div>
+        <a href="/admin/activity_logs" class="feature-btn" style="display: inline-block; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #06B6D4, #0EA5E9); color: white; text-decoration: none; border-radius: 0.75rem; font-weight: 600; transition: all 0.3s ease;">
+            <i class="fas fa-arrow-right"></i> View Logs
+        </a>
+    </div>
+
+    <!-- Feature 3: System Analytics -->
+    <div class="feature-card" style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 1rem; padding: 1.5rem; transition: all 0.3s ease;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <div class="feature-icon" style="width: 50px; height: 50px; background: linear-gradient(135deg, #10B981, #059669); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem;">System Analytics</h3>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">Comprehensive insights</p>
+            </div>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <p style="color: var(--text-secondary); font-size: 0.875rem; line-height: 1.5;">
+                Get detailed analytics on user growth, prediction trends, leakage rates, and system performance.
+            </p>
+        </div>
+        <a href="/admin/analytics" class="feature-btn" style="display: inline-block; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #10B981, #059669); color: white; text-decoration: none; border-radius: 0.75rem; font-weight: 600; transition: all 0.3s ease;">
+            <i class="fas fa-arrow-right"></i> View Analytics
+        </a>
+    </div>
+
+</div>
+
+<!-- Add hover effects -->
+<script>
+    document.querySelectorAll('.feature-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.borderColor = '#4F46E5';
+            this.style.boxShadow = '0 10px 30px rgba(79, 70, 229, 0.1)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.borderColor = 'var(--glass-border)';
+            this.style.boxShadow = 'none';
+        });
+    });
+</script>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="stat-change negative">
+                            <i class="fas fa-arrow-down"></i>
+                            3%
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ users|selectattr('role', 'equalto', 'manager')|list|length }}</div>
+                    <div class="stat-label">Manager Users</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            15%
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ users|selectattr('role', 'equalto', 'user')|list|length }}</div>
+                    <div class="stat-label">Regular Users</div>
+                </div>
+            </div>
+
+            <!-- Enhanced Users Section -->
+            <div class="users-section">
+                <div class="users-header">
+                    <h3>
+                        <div class="section-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        Users List
+                    </h3>
+                    <div style="display: flex; gap: 1rem;">
+                        <div class="search-bar">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" class="search-input" placeholder="Search users...">
+                        </div>
+                        <button class="filter-btn">
+                            <i class="fas fa-filter"></i>
+                            Filter
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Enhanced Users List -->
+                <ul class="users-list">
+                    {% for user in users %}
+                    <li class="user-item">
+                        <div class="user-info">
+                            <div class="user-avatar-small">{{ user.name[0]|upper }}</div>
+                            <div class="user-details">
+                                <div class="user-name-display">{{ user.name }}</div>
+                                <div class="user-email-display">{{ user.email }}</div>
+                            </div>
+                        </div>
+                        <div class="user-role-badge role-{{ user.role }}">
+                            {{ user.role }}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i>
+                        Add User
+                    </button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-download"></i>
+                        Export Users
+                    </button>
+                </div>
+            </div>
+
+            <!-- Enhanced Logout Button -->
+            <div class="logout-container">
+                <a href="/logout" class="logout-btn">
+                    <i class="fas fa-sign-out-alt logout-icon"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Generate particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 25 + 's';
+            particle.style.animationDuration = (25 + Math.random() * 15) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Search functionality
+        const searchInput = document.querySelector('.search-input');
+        const userItems = document.querySelectorAll('.user-item');
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            userItems.forEach(item => {
+                const userName = item.querySelector('.user-name-display').textContent.toLowerCase();
+                const userEmail = item.querySelector('.user-email-display').textContent.toLowerCase();
+                
+                if (userName.includes(searchTerm) || userEmail.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Add hover effects to user items
+        userItems.forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                const avatar = this.querySelector('.user-avatar-small');
+                if (avatar) {
+                    avatar.style.transform = 'scale(1.1) rotate(5deg)';
+                    avatar.style.transition = 'transform 0.3s ease';
+                }
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                const avatar = this.querySelector('.user-avatar-small');
+                if (avatar) {
+                    avatar.style.transform = 'scale(1) rotate(0deg)';
+                }
+            });
+        });
+
+        // Add click animation to action buttons
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                // Create ripple effect
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.classList.add('ripple');
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        // Add interactive hover to stat cards
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const icon = this.querySelector('.stat-icon');
+                if (icon) {
+                    icon.style.transform = 'rotateY(360deg)';
+                    icon.style.transition = 'transform 0.6s ease';
+                }
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                const icon = this.querySelector('.stat-icon');
+                if (icon) {
+                    icon.style.transform = 'rotateY(0deg)';
+                }
+            });
+        });
+
+        // Animate stats on load
+        window.addEventListener('load', () => {
+            const statValues = document.querySelectorAll('.stat-value');
+            statValues.forEach((stat, index) => {
+                const finalValue = stat.textContent;
+                stat.textContent = '0';
+                
+                setTimeout(() => {
+                    animateValue(stat, 0, finalValue, 1000);
+                }, index * 200);
+            });
+        });
+
+        function animateValue(element, start, end, duration) {
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                element.textContent = Math.floor(progress * (end - start) + start);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
+    </script>
+</body>
+</html>

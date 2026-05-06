@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Leakage Prediction - SecureLeak</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #4F46E5;
+            --secondary-color: #7C3AED;
+            --accent-color: #06B6D4;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --danger-color: #EF4444;
+            --dark-bg: #0F172A;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+        }
+
+        .background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://picsum.photos/seed/prediction/1920/1080.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.05;
+            animation: slowZoom 30s ease-in-out infinite alternate;
+        }
+
+        @keyframes slowZoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        /* Animated Particles */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            animation: float 25s infinite linear;
+            opacity: 0.2;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.2;
+            }
+            90% {
+                opacity: 0.2;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--primary-color);
+            transform: translateX(-5px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 5px rgba(79, 70, 229, 0.5)); }
+            to { filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.8)); }
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 70px;
+            padding: 2rem;
+            min-height: calc(100vh - 70px);
+        }
+
+        .prediction-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Enhanced h1 */
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 2px;
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-50%) scaleX(0); }
+            50% { transform: translateX(-50%) scaleX(1); }
+            100% { transform: translateX(-50%) scaleX(0); }
+        }
+
+        /* Form Container */
+        .form-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        /* Enhanced Form */
+        form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .required-indicator {
+            color: var(--danger-color);
+            font-size: 0.75rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            padding: 0.875rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:hover,
+        input[type="number"]:hover,
+        select:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1rem;
+            padding-right: 2.5rem;
+        }
+
+        select option {
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            padding: 0.5rem;
+        }
+
+        /* Submit Button */
+        .submit-section {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        input[type="submit"] {
+            padding: 1rem 3rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        input[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(79, 70, 229, 0.3);
+        }
+
+        input[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        input[type="submit"]::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        input[type="submit"]:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Results Section */
+        .results-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .result-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--success-color);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        h3 {
+            font-size: 1.125rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .prediction-result {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .result-content {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .result-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .result-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        .result-content::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        /* Flash Messages */
+        .flashes {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .flashes li {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            animation: slideIn 0.5s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .flashes li::before {
+            content: '⚠️';
+            font-size: 1.25rem;
+        }
+
+        /* Back Button */
+        .action-container {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .btn-success {
+            padding: 1.25rem 3rem;
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-success::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-success:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-icon {
+            font-size: 1.25rem;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .btn-success:hover .btn-icon {
+            animation-duration: 0.5s;
+        }
+
+        /* Loading State */
+        .loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .form-container {
+                padding: 2rem 1.5rem;
+            }
+
+            form {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-success {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="background-container">
+        <div class="background-image"></div>
+        <div class="particles" id="particles"></div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-left">
+            <a href="/user_dashboard" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back to Dashboard</span>
+            </a>
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>SecureLeak</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="prediction-container">
+            <!-- Enhanced h1 -->
+            <h1>Data Leakage Prediction</h1>
+
+            <!-- Enhanced Form Container -->
+            <div class="form-container">
+                <div class="form-header">
+                    <div class="form-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h2 class="form-title">Enter Prediction Parameters</h2>
+                </div>
+
+                <!-- Enhanced Form -->
+                <form method="POST" id="predictionForm">
+                    <div class="form-group">
+                        <label for="user">
+                            User:
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="text" name="user" id="user" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pc">
+                            PC:
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="text" name="pc" id="pc" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="authority">
+                            Authority:
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <select name="authority" id="authority" required>
+                            <option value="">Select</option>
+                            <option value="staff">staff</option>
+                            <option value="senior manager">senior manager</option>
+                            <option value="manager">manager</option>
+                            <option value="Blanks">other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="through_pwd">
+                            Through Password (0/1):
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="through_pwd" id="through_pwd" min="0" max="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="through_pin">
+                            Through PIN (0/1):
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="through_pin" id="through_pin" min="0" max="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="through_mfa">
+                            Through MFA (0/1):
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="through_mfa" id="through_mfa" min="0" max="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="data_mod">
+                            Data Modification (0/1):
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="data_mod" id="data_mod" min="0" max="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="conf_access">
+                            Confidential Data Access (0/1):
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="conf_access" id="conf_access" min="0" max="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="conf_transfer">
+                            Confidential File Transfer (0/1):
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="conf_transfer" id="conf_transfer" min="0" max="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="external_dest">
+                            External Destination:
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <select name="external_dest" id="external_dest" required>
+                            <option value="">Select</option>
+                            <option value="internal">internal</option>
+                            <option value="external">external</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="container_id">
+                            Container ID:
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="container_id" id="container_id" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="req_cpu">
+                            Requested CPU:
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="req_cpu" id="req_cpu" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="req_mem">
+                            Requested Memory (MB):
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="req_mem" id="req_mem" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="req_storage">
+                            Requested Storage (GB):
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="req_storage" id="req_storage" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exec_start">
+                            Execution Start Time (ms):
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="exec_start" id="exec_start" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exec_finish">
+                            Execution Finish Time (ms):
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="exec_finish" id="exec_finish" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="makespan">
+                            Makespan (ms):
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="makespan" id="makespan" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="total_data">
+                            Total Data Transferred (MB):
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" name="total_data" id="total_data" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="decrypt_key">
+                            Decrypt Key (optional):
+                        </label>
+                        <input type="text" name="decrypt_key" id="decrypt_key" placeholder="Optional decryption key">
+                    </div>
+
+                    <div class="submit-section">
+                        <input type="submit" value="Predict" id="predictBtn">
+                    </div>
+                </form>
+            </div>
+
+            <!-- Enhanced Results Section -->
+            {% if result_text %}
+            <div class="results-section">
+                <div class="result-header">
+                    <div class="result-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2 class="result-title">Prediction Complete</h2>
+                </div>
+                
+                <h2>Prediction:</h2>
+                <div class="prediction-result">{{ result_text }}</div>
+                
+                <h3>Encrypted Result:</h3>
+                <div class="result-content">{{ encrypted_base64 }}</div>
+            </div>
+            {% endif %}
+
+            {% if decrypted_text %}
+            <div class="results-section">
+                <div class="result-header">
+                    <div class="result-icon">
+                        <i class="fas fa-unlock"></i>
+                    </div>
+                    <h2 class="result-title">Decrypted Result</h2>
+                </div>
+                
+                <h3>Decrypted Result:</h3>
+                <div class="result-content">{{ decrypted_text }}</div>
+            </div>
+            {% endif %}
+
+            <!-- Enhanced Flash Messages -->
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <ul class="flashes">
+                  {% for message in messages %}
+                    <li>{{ message }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
+
+            <!-- Enhanced Back Button -->
+            <div class="action-container">
+                <a href="/user_dashboard" class="btn-success">
+                    <i class="fas fa-home btn-icon"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Generate particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 25 + 's';
+            particle.style.animationDuration = (25 + Math.random() * 15) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Form submission with loading state
+        const predictionForm = document.getElementById('predictionForm');
+        const predictBtn = document.getElementById('predictBtn');
+
+        predictionForm.addEventListener('submit', function(e) {
+            // Add loading state
+            predictBtn.classList.add('loading');
+            predictBtn.value = 'Processing...';
+        });
+
+        // Add input animations
+        document.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+                this.parentElement.style.transition = 'transform 0.3s ease';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // Add hover effects to result sections
+        document.querySelectorAll('.results-section').forEach(section => {
+            section.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.transition = 'transform 0.3s ease';
+            });
+            
+            section.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Auto-scroll to results if they exist
+        {% if result_text or decrypted_text %}
+        window.addEventListener('load', () => {
+            const resultsSection = document.querySelector('.results-section');
+            if (resultsSection) {
+                resultsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+        {% endif %}
+
+        // Add input validation feedback
+        document.querySelectorAll('input[required], select[required]').forEach(input => {
+            input.addEventListener('invalid', function(e) {
+                e.preventDefault();
+                this.style.borderColor = 'var(--danger-color)';
+                this.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+            });
+            
+            input.addEventListener('input', function() {
+                if (this.validity.valid) {
+                    this.style.borderColor = '';
+                    this.style.boxShadow = '';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
